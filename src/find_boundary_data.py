@@ -128,8 +128,8 @@ def search_all_data(model_path, first_label_path, second_label_path, coefficient
     count = 0
     while count < generate_num:
         print("generate data number: ", count)
-        select_first = data_first_list[random.randint(0, len(data_first_list))]
-        select_second = data_second_list[random.randint(0, len(data_second_list))]
+        select_first = data_first_list[random.randint(0, len(data_first_list) - 1)]
+        select_second = data_second_list[random.randint(0, len(data_second_list) - 1)]
         select_first = select_first / 255
         select_second = select_second / 255
         select_first = select_first.reshape(1, 28, 28, 1)
