@@ -4,6 +4,67 @@ import random
 import argparse
 
 
+def count_boundary_number(model, select_first, select_second, coefficient, iterations):
+    """
+
+    :param model:
+    :param select_first:
+    :param select_second:
+    :param coefficient:
+    :param iterations:
+    :return:
+    """
+    y_first = model.predict(select_first).argmax(axis=-1)[0]
+    y_second = model.predict(select_second).argmax(axis=-1)[0]
+    y_previous = y_second
+    bias = 1 / iterations
+    return_count = 0
+    for i in range(iterations):
+        coefficient = coefficient + bias
+        # print("coefficient: ", coefficient)
+        synthetic_data = np.clip(coefficient * select_first + (1 - coefficient) * select_second, 0.0, 1.0)
+        y_synthetic = model.predict(synthetic_data).argmax(axis=-1)[0]
+        # print("prediction: ", y_synthetic)
+        if y_synthetic == y_first and y_previous == y_second:
+            return_count += 1
+            y_previous = y_synthetic
+        else:
+            y_previous = y_synthetic
+    print("boundary number: ", return_count)
+    return return_count
+
+
+def random_select_boundary(model_path, data_dir_path, label_num, data_num, coefficient, iterations):
+    """
+
+    :param model_path:
+    :param data_dir_path:
+    :param label_num:
+    :param data_num:
+    :param coefficient:
+    :param iterations:
+    :return:
+    """
+    model = load_model(model_path)
+    total_boundary = 0
+    for i in range(label_num - 1):
+        for j in range(i + 1, label_num):
+            first_data_path = data_dir_path + "class_" + str(i) + ".npz"
+            second_data_path = data_dir_path + "class_" + str(j) + ".npz"
+            data_first_list = np.load(first_data_path)["x_train"]
+            data_second_list = np.load(second_data_path)["x_train"]
+            for k in range(data_num):
+                select_first = data_first_list[random.randint(0, len(data_first_list))]
+                select_second = data_second_list[random.randint(0, len(data_second_list))]
+                # print(select_first)
+                select_first = select_first / 255
+                select_second = select_second / 255
+                select_first = select_first.reshape(1, 28, 28, 1)
+                select_second = select_second.reshape(1, 28, 28, 1)
+                total_boundary += count_boundary_number(model, select_first, select_second, coefficient, iterations)
+    return total_boundary
+
+
 def search_in_order(model, select_first, select_second, coefficient, iterations):
     """
     search data coefficient one by one
@@ -22,10 +83,10 @@ def search_in_order(model, select_first, select_second, coefficient, iterations)
     success_flag = 0
     for i in range(iterations):
         coefficient = coefficient + bias
-        # print("coefficient: ", coefficient)
+        print("coefficient: ", coefficient)
         synthetic_data = np.clip(coefficient * select_first + (1 - coefficient) * select_second, 0.0, 1.0)
         y_synthetic = model.predict(synthetic_data).argmax(axis=-1)[0]
-        # print("prediction: ", y_synthetic)
+        print("prediction: ", y_synthetic)
         if y_synthetic == y_first and y_previous == y_second:
             save_coefficient = coefficient
             success_flag = 1
@@ -175,8 +236,10 @@ def get_arg_and_run():
 
 
 if __name__ == '__main__':
-    # coefficient = 0.00
-    # coefficient_plus = 0.50
+    coefficient = 0.00
+    coefficient_plus = 0.50
+    model_path = "../model/lenet-5.h5"
+    data_dir_path = "../data/original_data/"
     # model = load_model("../model/lenet-5.h5")
     # data_first_list = np.load("../data/original_data/class_0.npz")["x_train"]
     # data_second_list = np.load("../data/original_data/class_1.npz")["x_train"]
@@ -187,17 +250,13 @@ if __name__ == '__main__':
     # select_second = select_second / 255
     # select_first = select_first.reshape(1, 28, 28, 1)
     # select_second = select_second.reshape(1, 28, 28, 1)
-    # synthetic_data = search_in_order(model, select_first, select_second, coefficient, 2000)
-    # front_data = synthetic_data[0] * 255
-    # front_data = front_data.astype(int)
-    # back_data = synthetic_data[1] * 255
-    # back_data = back_data.astype(int)
-    # print(front_data)
+    # synthetic_data = search_in_order(model, select_first, select_second, coefficient, 5000)
+    count = random_select_boundary(model_path, data_dir_path, 10, 200, coefficient, 5000)
 
     # search_all_data("../model/lenet-5.h5", "../data/original_data/class_0.npz", "../data/original_data/class_1.npz",
     #                 0.00, 1000, "../data/boundary_data/data_0&1.npz")
 
-    get_arg_and_run()
+    # get_arg_and_run()
 
     # python find_boundary_data.py --model_path ../model/lenet-5.h5 --first_label_path ../data/original_data/class_0.npz --second_label_path ../data/original_data/class_1.npz --coefficient 0.00 --generate_num 10 --save_path ../data/boundary_data/data_0&1.npz
 
