@@ -251,7 +251,8 @@ if __name__ == '__main__':
     # select_first = select_first.reshape(1, 28, 28, 1)
     # select_second = select_second.reshape(1, 28, 28, 1)
     # synthetic_data = search_in_order(model, select_first, select_second, coefficient, 5000)
-    count = random_select_boundary(model_path, data_dir_path, 10, 200, coefficient, 5000)
+    count = random_select_boundary(model_path, data_dir_path, 10, 20, coefficient, 5000)
+    print(count)
 
     # search_all_data("../model/lenet-5.h5", "../data/original_data/class_0.npz", "../data/original_data/class_1.npz",
     #                 0.00, 1000, "../data/boundary_data/data_0&1.npz")

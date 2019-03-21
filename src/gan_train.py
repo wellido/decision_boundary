@@ -7,6 +7,8 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
+from utils import load_boundary_data
+
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -104,11 +106,18 @@ class DCGAN():
     def train(self, epochs, batch_size=128, save_interval=50):
 
         # Load the dataset
-        (X_train, _), (_, _) = mnist.load_data()
+        # (x_train, _), (_, _) = mnist.load_data()
+        # img_data = np.load("../data/gan_training_data/gan_training_data.npz")
+        img_data = np.load("../data/gan_training_each_boundary_data/boundary01_data.npz")
+        x_train = img_data["x_train"]
+        x_train = x_train.reshape(x_train.shape[0], 28, 28)
+
 
         # Rescale -1 to 1
-        X_train = X_train / 127.5 - 1.
-        X_train = np.expand_dims(X_train, axis=3)
+        # x_train = x_train / 127.5 - 1.
+        # print(x_train.shape)
+        x_train = x_train / 255
+        x_train = np.expand_dims(x_train, axis=3)
 
         # Adversarial ground truths
         valid = np.ones((batch_size, 1))
@@ -121,8 +130,8 @@ class DCGAN():
             # ---------------------
 
             # Select a random half of images
-            idx = np.random.randint(0, X_train.shape[0], batch_size)
-            imgs = X_train[idx]
+            idx = np.random.randint(0, x_train.shape[0], batch_size)
+            imgs = x_train[idx]
 
             # Sample noise and generate a batch of new images
             noise = np.random.normal(0, 1, (batch_size, self.latent_dim))
@@ -146,6 +155,7 @@ class DCGAN():
             # If at save interval => save generated image samples
             if epoch % save_interval == 0:
                 self.save_imgs(epoch)
+        self.discriminator.save("../model/discriminator.h5")
 
     def save_imgs(self, epoch):
         r, c = 5, 5
@@ -162,10 +172,10 @@ class DCGAN():
                 axs[i,j].imshow(gen_imgs[cnt, :,:,0], cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("images/mnist_%d.png" % epoch)
+        fig.savefig("images/boundary01_%d.png" % epoch)
         plt.close()
 
 
 if __name__ == '__main__':
     dcgan = DCGAN()
-    dcgan.train(epochs=4000, batch_size=32, save_interval=200)
+    dcgan.train(epochs=2000, batch_size=32, save_interval=500)
