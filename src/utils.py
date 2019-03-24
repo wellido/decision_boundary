@@ -54,10 +54,17 @@ def load_single_label_boundary_data(dir_path, boundary_1, boundary_2, label_coun
     return x_train, y_tr
 
 
+def print_boundary(class_num, label):
+    """
 
-
-
-
-
-
+    :param class_num:
+    :param label:
+    :return:
+    """
+    label2boundary = []
+    for i in range(class_num - 1):
+        for j in range(i + 1, class_num):
+            # print("label: %d, boundary: %d%d" % (count, i, j))
+            label2boundary.append(str(i) + str(j))
+    print("boundary: ", label2boundary[label])
 
