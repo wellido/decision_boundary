@@ -108,7 +108,7 @@ class DCGAN():
         # Load the dataset
         # (x_train, _), (_, _) = mnist.load_data()
         # img_data = np.load("../data/gan_training_data/gan_training_data.npz")
-        img_data = np.load("../data/gan_training_each_boundary_data/boundary09_data.npz")
+        img_data = np.load("../data/gan_training_each_boundary_data/boundary9_data.npz")
         x_train = img_data["x_train"]
         x_train = x_train.reshape(x_train.shape[0], 28, 28)
 
@@ -155,7 +155,7 @@ class DCGAN():
             # If at save interval => save generated image samples
             # if epoch % save_interval == 0:
             #     self.save_imgs(epoch)
-        self.discriminator.save("../model/boundary09.h5")
+        self.discriminator.save("../model/boundary9.h5")
 
     def save_imgs(self, epoch):
         r, c = 5, 5
@@ -178,4 +178,4 @@ class DCGAN():
 
 if __name__ == '__main__':
     dcgan = DCGAN()
-    dcgan.train(epochs=2000, batch_size=32, save_interval=500)
+    dcgan.train(epochs=5000, batch_size=32, save_interval=500)
