@@ -54,6 +54,31 @@ def load_single_label_boundary_data(dir_path, boundary_1, boundary_2, label_coun
     return x_train, y_tr
 
 
+def load_single_label_boundary_data_oneside(dir_path, boundary_1, boundary_2, label_count, side):
+    """
+
+    :param dir_path:
+    :param boundary_1:
+    :param boundary_2:
+    :param label_count:
+    :param side:
+    :return:
+    """
+    x_train = []
+    x_train = np.asarray(x_train)
+    data_path = dir_path + "data_" + str(boundary_1) + "&" + str(boundary_2) + \
+                "/data_" + str(boundary_1) + "&" + str(boundary_2) + "_1000_part1.npz"
+    single_data = np.load(data_path)
+    single_x = single_data["x_train"]
+    if side == 0:
+        x_train = np.append(x_train, single_x[0]).reshape(len(single_x[0]), 1, 28, 28, 1)
+    else:
+        x_train = np.append(x_train, single_x[1]).reshape(len(single_x[0]), 1, 28, 28, 1)
+    y_tr = [label_count for k in range(int(len(single_x[0])))]
+    y_tr = np.asarray(y_tr)
+    return x_train, y_tr
+
+
 def print_boundary(class_num, label):
     """
 

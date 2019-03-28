@@ -83,10 +83,10 @@ def search_in_order(model, select_first, select_second, coefficient, iterations)
     success_flag = 0
     for i in range(iterations):
         coefficient = coefficient + bias
-        print("coefficient: ", coefficient)
+        # print("coefficient: ", coefficient)
         synthetic_data = np.clip(coefficient * select_first + (1 - coefficient) * select_second, 0.0, 1.0)
         y_synthetic = model.predict(synthetic_data).argmax(axis=-1)[0]
-        print("prediction: ", y_synthetic)
+        # print("prediction: ", y_synthetic)
         if y_synthetic == y_first and y_previous == y_second:
             save_coefficient = coefficient
             success_flag = 1
@@ -130,9 +130,9 @@ def search_by_dichotomize(model, select_first, select_second, coefficient, coeff
     for i in range(iterations):
         synthetic_data = np.clip(coefficient * select_first + (1 - coefficient) * select_second, 0.0, 1.0)
         prediction = model.predict(synthetic_data).argmax(axis=-1)[0]
-        print("times: ", i)
-        print("coefficient: ", coefficient)
-        print("prediction: ", prediction)
+        # print("times: ", i)
+        # print("coefficient: ", coefficient)
+        # print("prediction: ", prediction)
         coefficient_plus = coefficient_plus / 2
         if prediction == y_first:
             if previous_prediction == y_second:
@@ -195,12 +195,16 @@ def search_all_data(model_path, first_label_path, second_label_path, coefficient
         select_second = select_second / 255
         select_first = select_first.reshape(1, 28, 28, 1)
         select_second = select_second.reshape(1, 28, 28, 1)
-        synthetic_data = search_in_order(model, select_first, select_second, coefficient, 2000)
+        synthetic_data = search_in_order(model, select_first, select_second, coefficient, 5000)
         if synthetic_data:
-            front_data = synthetic_data[0] * 255
-            front_data = front_data.astype(int)
-            back_data = synthetic_data[1] * 255
-            back_data = back_data.astype(int)
+            front_data = synthetic_data[0]
+            back_data = synthetic_data[1]
+            # transform to int
+
+            # front_data = synthetic_data[0] * 255
+            # front_data = front_data.astype(int)
+            # back_data = synthetic_data[1] * 255
+            # back_data = back_data.astype(int)
             front_side_save_list.append(front_data)
             back_side_save_list.append(back_data)
             count += 1
@@ -251,13 +255,13 @@ if __name__ == '__main__':
     # select_first = select_first.reshape(1, 28, 28, 1)
     # select_second = select_second.reshape(1, 28, 28, 1)
     # synthetic_data = search_in_order(model, select_first, select_second, coefficient, 5000)
-    count = random_select_boundary(model_path, data_dir_path, 10, 20, coefficient, 5000)
-    print(count)
+    # count = random_select_boundary(model_path, data_dir_path, 10, 20, coefficient, 5000)
+    # print(count)
 
     # search_all_data("../model/lenet-5.h5", "../data/original_data/class_0.npz", "../data/original_data/class_1.npz",
     #                 0.00, 1000, "../data/boundary_data/data_0&1.npz")
 
-    # get_arg_and_run()
+    get_arg_and_run()
 
     # python find_boundary_data.py --model_path ../model/lenet-5.h5 --first_label_path ../data/original_data/class_0.npz --second_label_path ../data/original_data/class_1.npz --coefficient 0.00 --generate_num 10 --save_path ../data/boundary_data/data_0&1.npz
 

@@ -36,14 +36,15 @@ def no_target_attack(model_path, label, number, save_path):
     :return:
     """
     model = load_model(model_path)
-    data = np.load("../data/original_data/class_" + str(label) + ".npz")
-    fmodel = foolbox.models.KerasModel(model, bounds=(0, 1), channel_axis=1)
+    data = np.load("../data/original_data/test_class_" + str(label) + ".npz")
+    fmodel = foolbox.models.KerasModel(model, bounds=(-1, 1), channel_axis=1)
     x_train = data["x_train"]
     index_select = np.random.choice(len(x_train), 2 * number, replace=False)
     count = 0
     save_list = []
     for index in index_select:
-        x_attack = x_train[index].reshape(28, 28, 1) / 255
+        # x_attack = x_train[index].reshape(28, 28, 1) / 255
+        x_attack = x_train[index].reshape(28, 28, 1) / 127.5 - 1.
         print("original label: ", label)
         adversarial = FGSM_attack(fmodel, x_attack, label)
         if adversarial is not None:
@@ -51,8 +52,8 @@ def no_target_attack(model_path, label, number, save_path):
             if adv_result != label:
                 print("adversary label: ", adv_result)
                 count += 1
-                adversarial = adversarial * 255
-                adversarial = adversarial.astype(int)
+                # adversarial = adversarial * 255
+                # adversarial = adversarial.astype(int)
                 save_list.append(adversarial)
             else:
                 continue
@@ -80,8 +81,8 @@ def target_attack(model_path, target_label, number, save_path):
     count = 0
     save_list = []
     while count < number:
-        select_index = random.randint(0, 59999)
-        select_data = x_train[select_index] / 255
+        select_index = random.randint(0, 9999)
+        select_data = x_test[select_index] / 255
         select_data = select_data.reshape(1, 28, 28, 1)
         original_label = model.predict(select_data).argmax(axis=-1)[0]
         if original_label == target_label:
