@@ -167,6 +167,52 @@ def search_by_dichotomize(model, select_first, select_second, coefficient, coeff
         return False
 
 
+def search_by_switch_pixel(model, select_first, select_second, switch_num):
+    """
+
+    :param model:
+    :param select_first:
+    :param select_second:
+    :param switch_num:
+    :return:
+    """
+    y_first = model.predict(select_first).argmax(axis=-1)[0]
+    y_second = model.predict(select_second).argmax(axis=-1)[0]
+    save_previous = None
+    save_now = None
+    success_flag = 0
+    shape = select_first.shape
+    y_previous = y_first
+    bias = switch_num
+    total_pixel = len(select_first.flatten())
+    iterations = int(total_pixel / switch_num)
+    for i in range(iterations):
+        flatten_first = select_first.flatten()
+        flatten_second = select_second.flatten()
+        switch_select_index = np.random.choice(total_pixel, bias, replace=False)
+        switch_select_index = switch_select_index.tolist()
+        m = flatten_second[switch_select_index]
+        flatten_first[switch_select_index] = m
+        synthetic_data = flatten_first.reshape(shape)
+        y_synthetic = model.predict(synthetic_data).argmax(axis=-1)[0]
+        bias += switch_num
+        if y_synthetic == y_second and y_previous == y_first:
+            save_now = synthetic_data
+            success_flag = 1
+            break
+        else:
+            save_previous = synthetic_data
+            y_previous = y_synthetic
+            continue
+    if success_flag == 1:
+        print("front prediction: ", model.predict(save_previous).argmax(axis=-1)[0])
+        print("back prediction: ", model.predict(save_now).argmax(axis=-1)[0])
+        return save_previous, save_now
+    else:
+        print("can't find data.")
+        return False
+
+
 def search_all_data(model_path, first_label_path, second_label_path, coefficient, generate_num, save_path):
     """
     main runner
@@ -191,11 +237,12 @@ def search_all_data(model_path, first_label_path, second_label_path, coefficient
         print("generate data number: ", count)
         select_first = data_first_list[random.randint(0, len(data_first_list) - 1)]
         select_second = data_second_list[random.randint(0, len(data_second_list) - 1)]
-        select_first = select_first / 255
-        select_second = select_second / 255
+        select_first = select_first / 127.5 - 1.
+        select_second = select_second / 127.5 - 1.
         select_first = select_first.reshape(1, 28, 28, 1)
         select_second = select_second.reshape(1, 28, 28, 1)
         synthetic_data = search_in_order(model, select_first, select_second, coefficient, 5000)
+        # synthetic_data = search_by_switch_pixel(model, select_first, select_second, 1)
         if synthetic_data:
             front_data = synthetic_data[0]
             back_data = synthetic_data[1]
