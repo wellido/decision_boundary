@@ -1,5 +1,10 @@
-# Test loss: 0.4809331989093879
-# Test accuracy: 0.9045763480377025
+# resnet20 v1
+# Test loss: 0.4901783529265628
+# Test accuracy: 0.8977797915884743
+
+# resnet20 v2
+# Test loss: 0.4895866179228585
+# Test accuracy: 0.9034888989740656
 
 from __future__ import print_function
 import keras
@@ -39,7 +44,7 @@ subtract_pixel_mean = True
 # ResNet164 |27(18)| -----     | 94.07     | -----     | 94.54     | ---(---)
 # ResNet1001| (111)| -----     | 92.39     | -----     | 95.08+-.14| ---(---)
 # ---------------------------------------------------------------------------
-n = 3
+n = 5
 
 # Model version
 # Orig paper: version = 1 (ResNet v1), Improved ResNet: version = 2 (ResNet v2)
@@ -58,26 +63,35 @@ model_type = 'ResNet%dv%d' % (depth, version)
 # the data, split between train and test sets
 print("original training data...")
 ori_train_len = []
-x_train = np.load("../data/cifar10_original_data/class_0.npz")["x_train"] / 255
+x_train = np.load("../data/cifar10_original_data/class_0.npz")["x_train"].astype('float32') / 255
 ori_train_len.append(len(x_train))
 for i in range(1, 10):
-    x_s = np.load("../data/cifar10_original_data/class_" + str(i) + ".npz")["x_train"] / 255
+    x_s = np.load("../data/cifar10_original_data/class_" + str(i) + ".npz")["x_train"].astype('float32') / 255
     x_train = np.append(x_train, x_s, axis=0)
     ori_train_len.append(len(x_s))
 print("completed")
 
 print("original test data...")
 ori_test_len = []
-x_test = np.load("../data/cifar10_original_data/test_class_0.npz")["x_train"] / 255
+x_test = np.load("../data/cifar10_original_data/test_class_0.npz")["x_train"].astype('float32') / 255
 ori_test_len.append(len(x_test))
 for i in range(1, 10):
-    x_s = np.load("../data/cifar10_original_data/test_class_" + str(i) + ".npz")["x_train"] / 255
+    x_s = np.load("../data/cifar10_original_data/test_class_" + str(i) + ".npz")["x_train"].astype('float32') / 255
     x_test = np.append(x_test, x_s, axis=0)
     ori_test_len.append(len(x_s))
 
+
+# Load the CIFAR10 data.
+(x_train_2, y_train_2), (x_test_2, y_test_2) = cifar10.load_data()
+
+# Normalize data.
+x_train_2 = x_train_2.astype('float32') / 255
+x_test_2 = x_test_2.astype('float32') / 255
+
+
 # If subtract pixel mean is enabled
 if subtract_pixel_mean:
-    x_train_mean = np.mean(x_train, axis=0)
+    x_train_mean = np.mean(x_train_2, axis=0)
     x_train -= x_train_mean
     x_test -= x_train_mean
 print("completed")
@@ -88,7 +102,7 @@ print("boundary data...")
 for i in range(9):
     for j in range(i + 1, 10):
         x_s = np.load("../data/cifar10_boundary_data/data_" + str(i) + "&" + str(j) +
-                      "/data_" + str(i) + "&" + str(j) + "_7000_part1.npz")["x_train"]
+                      "/data_" + str(i) + "&" + str(j) + "_2000_part1.npz")["x_train"]
         # print(x_s.shape)
         # x_train = np.append(x_train, x_s[0][:6000].reshape(6000, img_rows, img_cols), axis=0)
         # x_test = np.append(x_test, x_s[0][6000:].reshape(1000, img_rows, img_cols), axis=0)
@@ -466,7 +480,7 @@ else:
                         callbacks=callbacks)
 
 # Score trained model.
-model.save("cifar10_11label.h5")
+model.save("cifar10_11label_3.h5")
 scores = model.evaluate(x_test, y_test, verbose=1)
 print('Test loss:', scores[0])
 print('Test accuracy:', scores[1])
